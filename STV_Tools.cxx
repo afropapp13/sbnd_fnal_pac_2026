@@ -50,6 +50,7 @@ STV_Tools::STV_Tools(TVector3 MuonVector,TVector3 ProtonVector, double MuonEnerg
 	fDeltaAlphaT = TMath::ACos( (- MuonVectorTrans * PtVector) / ( MuonVectorTransMag * fPt ) ) * 180./TMath::Pi();
 	if (fDeltaAlphaT > 180.) { fDeltaAlphaT -= 180.; }
 	if (fDeltaAlphaT < 0.) { fDeltaAlphaT += 180.; }
+	if (TMath::IsNaN(fDeltaAlphaT)) { fDeltaAlphaT = 0; }
 
 	fDeltaPhiT = TMath::ACos( (- MuonVectorTrans * ProtonVectorTrans) / ( MuonVectorTransMag * ProtonVectorTransMag ) ) * 180./TMath::Pi();
 	if (fDeltaPhiT > 180.) { fDeltaPhiT -= 180.; }

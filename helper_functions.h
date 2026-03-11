@@ -5,6 +5,8 @@
 #include <TVectorD.h>
 #include <TMatrixD.h>
 #include "Math/DistFunc.h"
+#include <TStyle.h>
+#include <TROOT.h>
 
 #include <iostream>
 #include <iomanip>
@@ -15,34 +17,108 @@
 #include <fstream>
 #include <limits>
 #include <algorithm> // Required for std::max_element
+#include <cstddef>
+#include "constants.h"
 
 using namespace std;
+using namespace constants;
 
 //---------------------------//
 
-std::vector<std::string> get_th1d_names(TFile* file)
-{
-    std::vector<std::string> names;
+void set_unc_from_cov(TH2D* cov, TH1D* h) {
 
-    if (!file || file->IsZombie()) {
-        std::cerr << "Invalid file!" << std::endl;
-        return names;
+	if (!cov || !h) return;
+
+	int nbins = h->GetNbinsX();
+
+	for (int i = 1; i <= nbins; ++i) {
+		double variance = cov->GetBinContent(i, i);
+		double error = (variance >= 0) ? sqrt(variance) : 0.0;
+		h->SetBinError(i, error);
+	}
+
+}
+
+//---------------------------//
+
+void force_plot_style() {
+
+    gStyle->SetOptStat(0);
+
+    gStyle->SetTextFont(text_font);
+    gStyle->SetLabelFont(text_font, "XYZ");
+    gStyle->SetLabelFont(text_font, "t");	
+    gStyle->SetTitleFont(text_font,"XYZ");
+	gStyle->SetTitleFont(text_font,"t");  
+
+	gStyle->SetTitleFontSize(text_size);
+    gStyle->SetTextSize(text_size);	
+    gStyle->SetLabelSize(text_size, "XYZ"); 
+    gStyle->SetLabelSize(text_size, "t"); 	 
+    gStyle->SetTitleSize(text_size, "XYZ");
+    gStyle->SetTitleSize(text_size, "t");	 
+
+    gStyle->SetTitleOffset(1., "X");
+    gStyle->SetTitleOffset(1.2, "Y");  
+
+    gStyle->SetNdivisions(ndivs, "XYZ");
+
+	gROOT->ForceStyle();
+
+}
+
+//---------------------------//
+
+// Returns bin index for value x
+// Bins: [edges[i], edges[i+1])
+// Last bin includes upper edge
+template <size_t N>
+int FindBin(const double (&edges)[N], double x)
+{
+    constexpr int nbins = N - 1;
+
+    // Underflow
+    if (x < edges[0])
+        return -1;
+
+    // Overflow
+    if (x > edges[nbins])
+        return -1;
+
+    for (int i = 0; i < nbins; i++) {
+
+        // Normal bins
+        if (x >= edges[i] && x < edges[i+1])
+            return i;
     }
 
-    TIter next(file->GetListOfKeys());
+    // Include right edge in last bin
+    if (x == edges[nbins])
+        return nbins - 1;
+
+    return -1;
+}
+
+//---------------------------//
+
+std::vector<TString> get_th1d_names(TFile* f) {
+
+    std::vector<TString> histNames;
+
+    TIter next(f->GetListOfKeys());
     TKey* key;
 
     while ((key = (TKey*)next())) {
 
-        TObject* obj = key->ReadObj();
+        TClass* cl = gROOT->GetClass(key->GetClassName());
+        if (!cl) continue;
 
-        // Check if object is a TH1D
-        if (obj->InheritsFrom(TH1D::Class())) {
-            names.push_back(obj->GetName());
+        if (cl->InheritsFrom(TH1D::Class())) {
+            histNames.emplace_back(key->GetName());
         }
     }
 
-    return names;
+    return histNames;
 }
 
 //---------------------------//
@@ -98,69 +174,254 @@ double Chi2Prob(double chi2, int ndof)
 
 //----------------------------------------//	
 
-void calc_chi2(TH1D* h_model, TH1D* h_data, TH2D* cov, double &chi, int &ndof, double &pval) {
+void calc_chi2(TH1D* h_model,
+               TH1D* h_data,
+               TH2D* cov,
+               double &chi,
+               int &ndof,
+               double &pval)
+{
+    int NBins = cov->GetNbinsX();
 
-	// Clone them so we can scale them 
+    // ----------------------------
+    // Build covariance matrix
+    // ----------------------------
+    TMatrixD V(NBins, NBins);
 
-	TH1D* h_model_clone = (TH1D*)h_model->Clone();
-	TH1D* h_data_clone  = (TH1D*)h_data->Clone();
-	TH2D* h_cov_clone   = (TH2D*)cov->Clone();
-	int NBins = h_cov_clone->GetNbinsX();
+    for (int i = 0; i < NBins; ++i)
+        for (int j = 0; j < NBins; ++j)
+            V(i,j) = cov->GetBinContent(i+1, j+1);
 
-	// Getting covariance matrix in TMatrix form
+    // Optional tiny regularization (very useful in practice)
+    for (int i = 0; i < NBins; ++i)
+        V(i,i) += 1e-14;
 
-	TMatrixD cov_m;
-	cov_m.Clear();
-	cov_m.ResizeTo(NBins,NBins);
+    // ----------------------------
+    // Build difference vector Δ
+    // ----------------------------
+    TVectorD delta(NBins);
 
-	// loop over rows
+    for (int i = 0; i < NBins; ++i)
+        delta[i] = h_data->GetBinContent(i+1)
+                 - h_model->GetBinContent(i+1);
 
-	for (int i = 0; i < NBins; i++) {			
+    // ----------------------------
+    // Solve V x = Δ using Cholesky
+    // ----------------------------
+    TDecompChol decomp(V);
 
-		// loop over columns
+    if (!decomp.Decompose()) {
+        std::cout << "ERROR: Covariance matrix not positive definite!" << std::endl;
+        chi = -1;
+        ndof = 0;
+        pval = 0;
+        return;
+    }
 
-		for (int j = 0; j < NBins; j++) {
+    Bool_t ok;
+    TVectorD x = decomp.Solve(delta, ok);
 
-			cov_m[i][j] = h_cov_clone->GetBinContent(i+1, j+1);
- 
-		}
-	
-	}
+    if (!ok) {
+        std::cout << "ERROR: Failed to solve linear system!" << std::endl;
+        chi = -1;
+        ndof = 0;
+        pval = 0;
+        return;
+    }
 
-	TMatrixD copy_cov_m = cov_m;
+    // ----------------------------
+    // χ² = Δᵀ x
+    // ----------------------------
+    chi = delta * x;
 
-	// Inverting the covariance matrix
-	TMatrixD inverse_cov_m = cov_m.Invert();
-
-	// Calculating the chi2 = Summation_ij{ (x_i - mu_j)*E_ij^(-1)*(x_j - mu_j)  }
-	// x = data, mu = model, E^(-1) = inverted covariance matrix 
-
-	chi = 0.;
-	
-	for (int i = 0; i < NBins; i++) {
-
-		//double XWidth = h_data_clone->GetBinWidth(i+1);
-
-		for (int j = 0; j < NBins; j++) {
-
-			//double YWidth = h_data_clone->GetBinWidth(i+1);
-
-			double diffi = h_data_clone->GetBinContent(i+1) - h_model_clone->GetBinContent(i+1);
-			double diffj = h_data_clone->GetBinContent(j+1) - h_model_clone->GetBinContent(j+1);
-			double LocalChi = diffi * inverse_cov_m[i][j] * diffj; 
-			chi += LocalChi;
-
-		}
-
-	}
-
-	ndof = h_data_clone->GetNbinsX();
-	pval = Chi2Prob(chi, ndof);
-
-	delete h_model_clone;
-	delete h_data_clone;
-	delete h_cov_clone;
-
+    ndof = NBins;
+    pval = TMath::Prob(chi, ndof);
 }
 
 //----------------------------------------//	
+
+int ReturnIndex(double value, std::vector<double> vec) {
+
+	int length = vec.size();
+	int index = -1;
+
+	for (int i = 0; i < length-1; i ++) {
+
+		if (i == 0 && value == vec.at(0)) { return 0; }
+		if (value > vec.at(i) && value <= vec.at(i+1)) { return i; }
+
+	}	
+
+	return index;
+
+}
+
+//----------------------------------------//
+
+int ReturnIndexIn3DList(std::vector< std::vector< std::vector<double> > > BinEdgeVector, int FirstSliceIndex, int SecondSliceIndex, double ValueInSlice) { 
+
+	int BinIndex = 1; // TH1D bin index, thus starting from 1
+	int VectorRowSize = BinEdgeVector.size();
+
+	for (int irow = 0; irow < VectorRowSize; irow++) {
+
+		int VectorColumnSize = BinEdgeVector.at(irow).size();
+
+		for (int icolumn = 0; icolumn < VectorColumnSize; icolumn++){
+
+			if (irow != FirstSliceIndex || icolumn != SecondSliceIndex) {
+
+				BinIndex += BinEdgeVector.at(irow).at(icolumn).size()-1;
+
+			} else {
+
+				int LocalBins = BinEdgeVector.at(irow).at(icolumn).size();
+				BinIndex += ReturnIndex(ValueInSlice, BinEdgeVector.at(irow).at(icolumn));
+				return BinIndex;
+
+			}
+
+		}	
+
+	}
+
+	return BinIndex+1; // Offset to account for bin number vs array index
+
+}
+
+//----------------------------------------//
+
+std::vector<double> Return3DBinIndices(std::vector< std::vector< std::vector<double> > > BinEdgeVector) { 
+
+	int BinCounter = 0;
+	int VectorRowSize = BinEdgeVector.size();
+	std::vector<double> BinIndices;
+
+	for (int irow = 0; irow < VectorRowSize; irow++) {
+
+		int NElements = BinEdgeVector.at(irow).size();
+
+		for (int ielement = 0; ielement < NElements; ielement++) {
+
+			int NElementsColumn = BinEdgeVector.at(irow).at(ielement).size();	
+
+			for (int icolumn = 0; icolumn < NElementsColumn-1; icolumn++) {
+
+				// Lower bin edges in the form of indices
+				// + 0.5 so that the bins are centered at an integer (e.g. Bin 1, 2, 3 et al)
+				BinIndices.push_back(BinCounter+0.5);
+				BinCounter++;
+
+			}	
+
+		}
+
+	}
+	// Upper bin edge
+	BinIndices.push_back(BinCounter+0.5);
+	return BinIndices;
+
+}	
+
+//----------------------------------------//
+
+int Return3DNBins(std::vector< std::vector< std::vector<double> > > BinEdgeVector) { 
+
+	int NBins = 0;
+	int VectorRowSize = BinEdgeVector.size();
+
+	for (int irow = 0; irow < VectorRowSize; irow++) {
+
+		int NElements = BinEdgeVector.at(irow).size();
+
+		for (int icolumn = 0; icolumn < NElements; icolumn++) {
+
+			int NElementsColumn = BinEdgeVector.at(irow).at(icolumn).size();
+
+			// Number of bins for each subvector
+			NBins += NElementsColumn-1;
+
+		}
+
+	}
+
+	return NBins;
+
+}
+
+//----------------------------------------//
+
+int ReturnIndexIn2DList(std::vector< std::vector<double> > BinEdgeVector, int SliceIndex, double ValueInSlice) { 
+
+	int BinIndex = 1; // TH1D bin index, thus starting from 1
+	int VectorRowSize = BinEdgeVector.size();
+
+	for (int irow = 0; irow < VectorRowSize; irow++) {
+
+		if (irow != SliceIndex) {
+
+			BinIndex += BinEdgeVector.at(irow).size()-1;
+
+		} else {
+
+			int LocalBins = BinEdgeVector.at(irow).size();
+			BinIndex += ReturnIndex(ValueInSlice, BinEdgeVector.at(irow));
+			return BinIndex;
+
+		}
+
+
+	}
+
+	return BinIndex+1; // Offset to account for bin number vs array index
+
+}
+
+//----------------------------------------//
+
+std::vector<double> Return2DBinIndices(std::vector< std::vector<double> > BinEdgeVector) { 
+
+	int BinCounter = 0;
+	int VectorRowSize = BinEdgeVector.size();
+	std::vector<double> BinIndices;
+
+	for (int irow = 0; irow < VectorRowSize; irow++) {
+
+		int NElements = BinEdgeVector.at(irow).size();
+
+		for (int ielement = 0; ielement < NElements-1; ielement++) {
+
+			// Lower bin edges in the form of indices
+			// + 0.5 so that the bins are centered at an integer (e.g. Bin 1, 2, 3 et al)
+			BinIndices.push_back(BinCounter+0.5);
+			BinCounter++;
+
+		}
+
+	}
+
+	// Upper bin edge
+	BinIndices.push_back(BinCounter+0.5);
+	return BinIndices;
+
+}	
+
+//----------------------------------------//
+
+int Return2DNBins(std::vector< std::vector<double> > BinEdgeVector) { 
+
+	int NBins = 0;
+	int VectorRowSize = BinEdgeVector.size();
+
+	for (int irow = 0; irow < VectorRowSize; irow++) {
+
+		int NElements = BinEdgeVector.at(irow).size();
+
+		// Number of bins for each subvector
+		NBins += NElements-1;
+
+	}
+
+	return NBins;
+
+}	

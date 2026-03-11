@@ -23,7 +23,7 @@ namespace constants {
 	static const double Units = 1E38; // so that the extracted cross-section is in 10^{-38} cm^{2}    
 
     const int text_font = 132;
-    const double text_size = 0.06;
+    const double text_size = 0.05;
     const int ndivs = 6; 
 
     double ProtonMass_GeV = 0.9382720813;
@@ -34,91 +34,118 @@ namespace constants {
     static constexpr double ArrayNBinsDeltaAlphaT[] = {0.,22.,44.,66.,88.,110.,145.,180.};
     static constexpr double ArrayNBinsMuonMomentum[] = {0.1,0.2,0.3,0.4,0.5,0.64,0.77,0.9,1.,1.1,1.2};
     static constexpr double ArrayNBinsMuonCosTheta[] = {-1.,-0.85,-0.7,-0.57,-0.45,-0.32,-0.2,-0.1,0.,0.1,0.2,0.3,0.4,0.5,0.6,0.72,0.84,0.95,1.};
+    static constexpr double ArrayNBinsProtonMulti[] = {-0.5,0.5,1.5,2.5,3.5};
+    static constexpr double ArrayNBinsPionMulti[] = {-0.5,0.5,1.5,2.5,3.5};		
 
     // Number of bins = number of edges - 1
     static constexpr std::size_t NBinsDeltaPT = std::size(ArrayNBinsDeltaPT) - 1;
     static constexpr std::size_t NBinsDeltaAlphaT = std::size(ArrayNBinsDeltaAlphaT) - 1;
     static constexpr std::size_t NBinsMuonMomentum = std::size(ArrayNBinsMuonMomentum) - 1;
     static constexpr std::size_t NBinsMuonCosTheta = std::size(ArrayNBinsMuonCosTheta) - 1;
+	static constexpr std::size_t nproton_bins = std::size(ArrayNBinsProtonMulti) - 1;
+	static constexpr std::size_t npion_bins = std::size(ArrayNBinsPionMulti) - 1;
 
 	//----------------------------------------//
 	
-	// And moving on towards a 2D analysis
+	// multi-d slices analysis
 		
-	static const int TwoDNBinsDeltaPT = 3; std::vector<double> TwoDArrayNBinsDeltaPT{0.0,0.2,0.4,1.0};
-	static const int TwoDNBinsDeltaAlphaT = 4; std::vector<double> TwoDArrayNBinsDeltaAlphaT{0.0,45.0,90.0,135.0,180.0};
-	static const int TwoDNBinsMuonCosTheta = 4; std::vector<double> TwoDArrayNBinsMuonCosTheta{-1.,0.0,0.5,0.75,1.0};
-	static const int TwoDNBinsMuonMomentum = 3; std::vector<double> TwoDArrayNBinsMuonMomentum{0.1,0.4,0.6,1.2};
-	
-	//----------------------------------------//
-	
-	std::vector< std::vector<double> > TwoDArrayNBinsDeltaAlphaTInDeltaPTSlices{ 
-												{0.,22.,44.,66.,88.,110.,145.,180.}, // DeltaPT < 0.2 GeV/c
-												{0.,22.,44.,66.,88.,110.,145.,180.}, // 0.2 < DeltaPT < 0.4 GeV/c
-												{0.,22.,44.,66.,88.,110.,145.,180.}  // DeltaPT > 0.4 GeV/c
-												
-											};
-											
-	//----------------------------------------//
-	
-	std::vector< std::vector<double> > TwoDArrayNBinsMuonMomentumInMuonCosThetaSlices{ 
-												{ 0.1,0.2,0.3,0.4,1.2},                           // -1    < cosθμ < 0
-												{ 0.1,0.2,0.3,0.4,0.5,1.2},                       //  0    < cosθμ < 0.5
-												{ 0.1,0.2,0.3,0.4,0.5,0.64,0.77,1.2},             //  0.5  < cosθμ < 0.75
-												{ 0.1,0.2,0.3,0.4,0.5,0.64,0.77,0.9,1.,1.1,1.2}   //  0.75 < cosθμ < 1
-											};
+	static constexpr double TwoDArrayNBinsDeltaAlphaT[] = {0.0, 45.0, 90.0, 135.0, 180.0};
+	static constexpr double TwoDArrayNBinsMuonCosTheta[] = {-1., 0.0, 0.5, 0.75, 1.0};
+
+	// Number of bins = number of edges - 1
+	static constexpr int TwoDNBinsDeltaAlphaT = std::size(TwoDArrayNBinsDeltaAlphaT) - 1;
+	static constexpr int TwoDNBinsMuonCosTheta = std::size(TwoDArrayNBinsMuonCosTheta) - 1;
 											
 	//----------------------------------------//	
+
+	// 3d binning
 	
-	std::vector< std::vector< std::vector<double> > > TwoDArrayNBinsECalInMuonCosThetaMuonMomentumSlices{
-														{ // -1 < cosθμ < 0
-														{0.2,0.4,0.6,1.6},  // 0.10 < Pμ < 0.40 GeV/c
-														{0.2,0.6,1.6},      // 0.40 < Pμ < 0.60 GeV/c
-														{0.2,1.6}           // 0.60 < Pμ < 1.20 GeV/c
-														},	
-														
-														{ // 0 < cosθμ < 0.5
-														{0.2,0.4,0.6,1.6},  // 0.10 < Pμ < 0.40 GeV/c
-														{0.2,0.6,0.8,1.6},  // 0.40 < Pμ < 0.6 GeV/c
-														{0.2,1.6}   // 0.6 < Pμ < 1.20 GeV/c
+	std::vector< std::vector< std::vector<double> > > bins_dpt_in_dat_proton_mult ={
+														{ // n_p = 0 
+														{0,0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.47,0.55,0.65,0.75,0.9},  // dat < 45 deg
+														{0,0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.47,0.55,0.65,0.75,0.9},  // 45 < dat < 90 deg
+														{0,0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.47,0.55,0.65,0.75,0.9},   // 90 < dat < 135 deg
+														{0,0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.47,0.55,0.65,0.75,0.9}   // 135 < dat < 180 deg														
 														},
-														
-														{ // 0.5 < cosθμ < 0.75
-														{0.2,0.4,0.6,1.6},  // 0.10 < Pμ < 0.40 GeV/c
-														{0.2,0.6,0.8,1.6},  // 0.40 < Pμ < 0.6 GeV/c
-														{0.2,0.8,1.,1.6}    // 0.6 < Pμ < 1.20 GeV/c
-														},														
-														
-														{ // 0.75 < cosθμ < 1
-														{0.2,0.5,1.6},      // 0.10 < Pμ < 0.40 GeV/c
-														{0.2,0.8,1.6},      // 0.40 < Pμ < 0.6 GeV/c
-														{0.2,0.8,1.2,1.6}   // 0.6 < Pμ < 1.20 GeV/c
-														}		
-																
+														{ // n_p = 1
+														{0,0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.47,0.55,0.65,0.75,0.9},  // dat < 45 deg
+														{0,0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.47,0.55,0.65,0.75,0.9},  // 45 < dat < 90 deg
+														{0,0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.47,0.55,0.65,0.75,0.9},   // 90 < dat < 135 deg
+														{0,0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.47,0.55,0.65,0.75,0.9}   // 135 < dat < 180 deg	
+														},
+														{ // n_p = 2
+														{0,0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.47,0.55,0.65,0.75,0.9},  // dat < 45 deg
+														{0,0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.47,0.55,0.65,0.75,0.9},  // 45 < dat < 90 deg
+														{0,0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.47,0.55,0.65,0.75,0.9},  // 90 < dat < 135 deg
+														{0,0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.47,0.55,0.65,0.75,0.9}   // 135 < dat < 180 deg	
+														},	
+														{ // n_p > 2																					
+														{0,0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.47,0.55,0.65,0.75,0.9},  // dat < 45 deg
+														{0,0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.47,0.55,0.65,0.75,0.9},  // 45 < dat < 90 deg
+														{0,0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.47,0.55,0.65,0.75,0.9},  // 90 < dat < 135 deg
+														{0,0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.47,0.55,0.65,0.75,0.9}   // 135 < dat < 190 deg
+														},		
 													};
-	//----------------------------------------//													
 
-	// Scaling factor for multi dimensional analysis
+	std::vector< std::vector< std::vector<double> > > bins_pmu_in_mucostheta_proton_mult ={
+														{ // n_p = 0 
+														{0,0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.47,0.55,0.65,0.75,0.9,1.,1.1,1.2,1.3,1.4,1.5},  // -1 < costheta_mu < 0
+														{0,0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.47,0.55,0.65,0.75,0.9,1.,1.1,1.2,1.3,1.4,1.5},  // 0 < costheta_mu < 0.5
+														{0,0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.47,0.55,0.65,0.75,0.9,1.,1.1,1.2,1.3,1.4,1.5},  // 0.5 < costheta_mu < 0.75
+														{0,0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.47,0.55,0.65,0.75,0.9,1.,1.1,1.2,1.3,1.4,1.5}   // 0.75 < costheta_mu < 1														
+														},
+														{ // n_p = 1
+														{0,0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.47,0.55,0.65,0.75,0.9,1.,1.1,1.2,1.3,1.4,1.5},  // -1 < costheta_mu < 0
+														{0,0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.47,0.55,0.65,0.75,0.9,1.,1.1,1.2,1.3,1.4,1.5},  // 0 < costheta_mu < 0.5
+														{0,0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.47,0.55,0.65,0.75,0.9,1.,1.1,1.2,1.3,1.4,1.5},  // 0.5 < costheta_mu < 0.75
+														{0,0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.47,0.55,0.65,0.75,0.9,1.,1.1,1.2,1.3,1.4,1.5}   // 0.75 < costheta_mu < 1
+														},
+														{ // n_p = 2
+														{0,0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.47,0.55,0.65,0.75,0.9,1.,1.1,1.2,1.3,1.4,1.5},  // -1 < costheta_mu < 0
+														{0,0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.47,0.55,0.65,0.75,0.9,1.,1.1,1.2,1.3,1.4,1.5},  // 0 < costheta_mu < 0.5
+														{0,0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.47,0.55,0.65,0.75,0.9,1.,1.1,1.2,1.3,1.4,1.5},  // 0.5 < costheta_mu < 0.75
+														{0,0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.47,0.55,0.65,0.75,0.9,1.,1.1,1.2,1.3,1.4,1.5}   // 0.75 < costheta_mu < 1														
+														},
+														{ // n_p > 2																					
+														{0,0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.47,0.55,0.65,0.75,0.9,1.,1.1,1.2,1.3,1.4,1.5},  // -1 < costheta_mu < 0
+														{0,0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.47,0.55,0.65,0.75,0.9,1.,1.1,1.2,1.3,1.4,1.5},  // 0 < costheta_mu < 0.5
+														{0,0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.47,0.55,0.65,0.75,0.9,1.,1.1,1.2,1.3,1.4,1.5},  // 0.5 < costheta_mu < 0.75
+														{0,0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.47,0.55,0.65,0.75,0.9,1.,1.1,1.2,1.3,1.4,1.5},  // 0 < costheta_mu < 9 deg
+														},		
+													};
 
-	static std::map<TString,double> MultiDimScaleFactor =
-	{
-		{ "DeltaPTPlot", 1. },
-		{ "DeltaAlphaTPlot", 1. },		
-		{ "MuonMomentumPlot", 1. },
-		{ "MuonCosThetaPlot", 1. },
-		{ "DeltaAlphaT_DeltaPT_0_00To0_20Plot", TwoDArrayNBinsDeltaPT.at(1) - TwoDArrayNBinsDeltaPT.at(0) },
-		{ "DeltaAlphaT_DeltaPT_0_20To0_40Plot", TwoDArrayNBinsDeltaPT.at(2) - TwoDArrayNBinsDeltaPT.at(1) },
-		{ "DeltaAlphaT_DeltaPT_0_40To1_00Plot", TwoDArrayNBinsDeltaPT.at(3) - TwoDArrayNBinsDeltaPT.at(2) },
-		{ "DeltaPT_DeltaAlphaT_0_00To45_00Plot", TwoDArrayNBinsDeltaAlphaT.at(1) - TwoDArrayNBinsDeltaAlphaT.at(0) },
-		{ "DeltaPT_DeltaAlphaT_45_00To90_00Plot", TwoDArrayNBinsDeltaAlphaT.at(2) - TwoDArrayNBinsDeltaAlphaT.at(1) },
-		{ "DeltaPT_DeltaAlphaT_90_00To135_00Plot", TwoDArrayNBinsDeltaAlphaT.at(3) - TwoDArrayNBinsDeltaAlphaT.at(2) },
-		{ "DeltaPT_DeltaAlphaT_135_00To180_00Plot", TwoDArrayNBinsDeltaAlphaT.at(4) - TwoDArrayNBinsDeltaAlphaT.at(3) },
-		{ "MuonMomentum_MuonCosTheta_Minus1_00To0_00Plot", TwoDArrayNBinsMuonCosTheta.at(1) - TwoDArrayNBinsMuonCosTheta.at(0) },
-		{ "MuonMomentum_MuonCosTheta_0_00To0_50Plot", TwoDArrayNBinsMuonCosTheta.at(2) - TwoDArrayNBinsMuonCosTheta.at(1) },
-		{ "MuonMomentum_MuonCosTheta_0_50To0_75Plot", TwoDArrayNBinsMuonCosTheta.at(3) - TwoDArrayNBinsMuonCosTheta.at(2) },
-		{ "MuonMomentum_MuonCosTheta_0_75To1_00Plot", TwoDArrayNBinsMuonCosTheta.at(4) - TwoDArrayNBinsMuonCosTheta.at(3) },
-	
-    };	
+
+	std::vector< std::vector< std::vector<double> > > bins_pmu_in_mucostheta_pion_mult ={
+														{ // n_p = 0 
+														{0,0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.47,0.55,0.65,0.75,0.9,1.,1.1,1.2,1.3,1.4,1.5},  // -1 < costheta_mu < 0
+														{0,0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.47,0.55,0.65,0.75,0.9,1.,1.1,1.2,1.3,1.4,1.5},  // 0 < costheta_mu < 0.5
+														{0,0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.47,0.55,0.65,0.75,0.9,1.,1.1,1.2,1.3,1.4,1.5},  // 0.5 < costheta_mu < 0.75
+														{0,0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.47,0.55,0.65,0.75,0.9,1.,1.1,1.2,1.3,1.4,1.5}   // 0 < costheta_mu < 9 deg
+														},
+														{ // n_p = 1
+														{0,0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.47,0.55,0.65,0.75,0.9,1.,1.1,1.2,1.3,1.4,1.5},  // -1 < costheta_mu < 0
+														{0,0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.47,0.55,0.65,0.75,0.9,1.,1.1,1.2,1.3,1.4,1.5},  // 0 < costheta_mu < 0.5
+														{0,0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.47,0.55,0.65,0.75,0.9,1.,1.1,1.2,1.3,1.4,1.5},  // 0.5 < costheta_mu < 0.75
+														{0,0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.47,0.55,0.65,0.75,0.9,1.,1.1,1.2,1.3,1.4,1.5}   // 0 < costheta_mu < 9 deg
+														},
+														{ // n_p = 2
+														{0,0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.47,0.55,0.65,0.75,0.9,1.,1.1,1.2,1.3,1.4,1.5},  // -1 < costheta_mu < 0
+														{0,0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.47,0.55,0.65,0.75,0.9,1.,1.1,1.2,1.3,1.4,1.5},  // 0 < costheta_mu < 0.5
+														{0,0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.47,0.55,0.65,0.75,0.9,1.,1.1,1.2,1.3,1.4,1.5},  // 0.5 < costheta_mu < 0.75
+														{0,0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.47,0.55,0.65,0.75,0.9,1.,1.1,1.2,1.3,1.4,1.5},   //  75 < costheta_mu < 9 deg
+														},
+														{ // n_p > 2																					
+														{0,0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.47,0.55,0.65,0.75,0.9,1.,1.1,1.2,1.3,1.4,1.5},  // -1 < costheta_mu < 0
+														{0,0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.47,0.55,0.65,0.75,0.9,1.,1.1,1.2,1.3,1.4,1.5},  // 0 < costheta_mu < 0.5
+														{0,0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.47,0.55,0.65,0.75,0.9,1.,1.1,1.2,1.3,1.4,1.5},  // 0.5 < costheta_mu < 0.75
+														{0,0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.47,0.55,0.65,0.75,0.9,1.,1.1,1.2,1.3,1.4,1.5},  // 0 < costheta_mu < 9 deg
+														},		
+													};
+
+
+	TString xlabel_serial_dpt_in_dat_proton_multi = ";#deltap_{T} bin in #delta#alpha_{T}/n_{p} slices;#frac{d^{2}#sigma}{d#deltap_{T}d#delta#alpha_{T}dn_{p}} [10^{-38} cm^{2}/Ar]";
+	TString xlabel_serial_pmu_in_costhetamu_proton_multi = ";p_{#mu} bin in cos(#theta_{#mu})/n_{p} slices;#frac{d^{2}#sigma}{dp_{#mu}dcos(#theta_{#mu})dn_{p}} [10^{-38} cm^{2}/Ar]";
+	TString xlabel_serial_pmu_in_costhetamu_pion_multi = ";p_{#mu} bin in cos(#theta_{#mu})/n_{#pi} slices;#frac{d^{2}#sigma}{dp_{#mu}dcos(#theta_{#mu})dn_{#pi}} [10^{-38} cm^{2}/Ar]";
 
 }
 #endif
