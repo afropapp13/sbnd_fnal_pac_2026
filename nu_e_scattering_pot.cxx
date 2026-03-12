@@ -20,9 +20,9 @@ void nu_e_scattering_pot() {
     const double events_ref = 529.0;
 
     const int npoints = 100;
-    const double pot_max = 1e21;
+    const double pot_max = 1.6e21;
 
-    double efficiency = 0.13;
+    double efficiency = 0.4;
 
     std::vector<double> pot(npoints);
     std::vector<double> events(npoints);
@@ -46,10 +46,10 @@ void nu_e_scattering_pot() {
         err_eff[i]    = efficiency*err_y[i];
 
         if(events[i]>0) frac_unc[i] = 1.0/sqrt(events[i]) * 100.;
-        else frac_unc[i] = 0;
+        else frac_unc[i] = 99999;
 
         if(events_eff[i]>0) frac_unc_eff[i] = 1.0/sqrt(events_eff[i])*100.;
-        else frac_unc_eff[i] = 0;
+        else frac_unc_eff[i] = 99999;
 
     }
 
@@ -137,7 +137,7 @@ void nu_e_scattering_pot() {
     // Legend
     //----------------------------------
 
-    TLegend* leg = new TLegend(0.35,0.75,0.65,0.88);
+    TLegend* leg = new TLegend(0.55,0.75,0.85,0.88);
 
     leg->SetBorderSize(0);
     leg->SetFillStyle(0);
@@ -145,7 +145,7 @@ void nu_e_scattering_pot() {
     leg->SetTextFont(132);
 
     leg->AddEntry(band,"100% eff","lf");
-    leg->AddEntry(band_eff,"13% eff","lf");
+    leg->AddEntry(band_eff,"40% eff","lf");
 
     leg->Draw();
 

@@ -41,7 +41,7 @@ void overlay_mc_predictions() {
 
 	// AR23 uncertainty file
 
-	/*TFile* ar23_unc_file = TFile::Open("mc_files/covariances.root","readonly");*/
+	TFile* ar23_unc_file = TFile::Open("output_files/covariances.root","readonly");
 
 	//----------------------------------------//
 
@@ -49,7 +49,6 @@ void overlay_mc_predictions() {
 	TFile* f = TFile::Open("output_files/analyzer_AR23.root","readonly");
 
 	vector<TString> PlotNames = get_th1d_names(f); 
-
 	const int nplots = PlotNames.size();
 	cout << "Number of 1D Plots = " << nplots << endl;
 
@@ -143,31 +142,9 @@ void overlay_mc_predictions() {
 
 		if (NameOfSamples[isample] == "AR23") {
 
-// this needs to go away when the correct covariance matrix is implemented for all the samples, including AR23			
-int n = PlotsTrue[iplot][isample]->GetNbinsX();
-TH2D* hCov = new TH2D("hCov","Covariance",
-                      n,0,n,
-                      n,0,n);
 
-for(int i=1;i<=n;i++){
-
-    for(int j=1;j<=n;j++){
-
-		if (i != j) {hCov->SetBinContent(i,j,0.); }
-		else {hCov->SetBinContent(i,j,0.01*PlotsTrue[iplot][0]->GetBinContent(j)); }
-
-    }
-}	
-
-cov_matrix[iplot] = hCov;
-
-				//this needs to be added back
-				/*int n = PlotsTrue[iplot][isample]->GetNbinsX();
 				TString cov_name = "tot_covariance_"+PlotNames[iplot];
 				cov_matrix[iplot] = (TH2D*)ar23_unc_file->Get(cov_name);	
-				cov_matrix[iplot]->Scale(1e-80);	
-			
-				divide_bin_area(cov_matrix[iplot],PlotsTrue[iplot][isample]);*/
 				set_unc_from_cov(cov_matrix[iplot],PlotsTrue[iplot][0]);
 
 				//----------------------//

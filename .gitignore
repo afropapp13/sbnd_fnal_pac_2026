@@ -1,6 +1,7 @@
 
 output_files
 plots
+pdf/*
 *.pcm
 *.d
 *.so

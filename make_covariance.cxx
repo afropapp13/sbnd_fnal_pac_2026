@@ -11,7 +11,7 @@
 #include <TMatrixD.h>
 #include <TVectorD.h>
 
-#include "../helper_functions.h"
+#include "helper_functions.h"
 
 using namespace std;
 
@@ -40,19 +40,13 @@ void make_covariance() {
 
 	//--------------------//
 
-	vector<TString> plot_names;
-	plot_names.push_back("TrueSingleBinPlot");
-	plot_names.push_back("TrueDeltaPTPlot");	
-	plot_names.push_back("TrueDeltaAlphaTPlot"); 
-	plot_names.push_back("TrueMuonCosThetaPlot"); 
-
-	const int nplots = plot_names.size();
-
-	//--------------------//
-
 	// cv mc sample
 
-	TFile* cv_mc_file = TFile::Open("mc_files/analyzerOutput_AR23.root","readonly");
+	TFile* cv_mc_file = TFile::Open("output_files/analyzer_AR23.root","readonly");
+
+	vector<TString> plot_names = get_th1d_names(cv_mc_file); 
+	const int nplots = plot_names.size();
+	cout << "Number of 1D Plots = " << nplots << endl;	
 
 	// cv plots
 
@@ -195,7 +189,7 @@ void make_covariance() {
 			// loop over the universes
 			for (int iuni = 0; iuni < universe.at(alt); iuni++ ) {		
 
-				TString TStringAltMC = "mc_files/"+knob[alt]+"_" + int_to_string(iuni)+"_analyzerOutput_AR23.root";
+				TString TStringAltMC = "output_files/"+knob[alt]+"_" + int_to_string(iuni)+"_analyzer_AR23.root";
 				knob_file[alt] = TFile::Open(TStringAltMC,"readonly");			
 
 				knob_plots[iplot][alt][iuni] = (TH1D*)(knob_file[alt]->Get(plot_names[iplot]));
@@ -212,7 +206,7 @@ void make_covariance() {
 
 	// file to store all the covariances
 
-	TFile* cov_file = new TFile("mc_files/covariances.root","recreate");	
+	TFile* cov_file = new TFile("output_files/covariances.root","recreate");	
 
 	//--------------------//	
 

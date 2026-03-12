@@ -37,7 +37,7 @@ void analyzer::Loop() {
     TString outname = "output_files/analyzer_" + fOutputFile + ".root";
 
     if (fOutputFile == "AR23" && fweights != "" && findex != -1)
-        outname = "../mc_files/" + fweights + "_" +
+        outname = "output_files/" + fweights + "_" +
                   int_to_string(findex) +
                   "_analyzer_" + fOutputFile + ".root";
 
@@ -50,11 +50,12 @@ void analyzer::Loop() {
 
     double tweak_responses[7] = {1,1,1,1,1,1,1};
     int ntweaks = 0;
+    double paramCVWeight;    
 
     if (fOutputFile == "AR23" && fweights != "" && findex != -1) {
 
         syst_file = TFile::Open(
-            "../mc_files/syst_14_1000180400_CC_v3_6_2_AR23_20i_00_000.root",
+            "/pnfs/sbnd/persistent/users/apapadop/GENIETweakedSamples/sbnd_fnal_pac_2026/AR23_20i_00_000//syst_AR23_20i_00_000.root",
             "READonly");
 
         syst_tree = (TTree*)syst_file->Get("events");
