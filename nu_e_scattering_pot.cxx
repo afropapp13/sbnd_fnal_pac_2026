@@ -128,9 +128,9 @@ void nu_e_scattering_pot() {
         TLine* l = new TLine(lines[i],0,lines[i],ymax);
         l->SetLineStyle(2);
         l->SetLineWidth(2);
-        l->Draw();
+        //l->Draw();
 
-        latex.DrawLatex(lines[i],ymax*1.05,labels[i]);
+        //latex.DrawLatex(lines[i],ymax*1.05,labels[i]);
     }
 
     //----------------------------------
@@ -164,7 +164,7 @@ void nu_e_scattering_pot() {
     g_unc_eff->SetLineColor(kGreen+2);
     g_unc_eff->SetLineWidth(3);
 
-    g_unc->SetTitle(";POT;uncertainty [%]");
+    g_unc->SetTitle(";Protons On Target (POT);uncertainty [%]");
 
     g_unc->SetMinimum(0);
     g_unc->SetMaximum(25);
@@ -193,7 +193,7 @@ void nu_e_scattering_pot() {
         TLine* l = new TLine(lines[i],0,lines[i],ymax);
         l->SetLineStyle(2);
         l->SetLineWidth(2);
-        l->Draw();
+        //l->Draw();
         
     }
 
@@ -213,4 +213,22 @@ void nu_e_scattering_pot() {
     }
 
     c->SaveAs("nu_e_scattering_pot.pdf");
+
+    //----------------------------------
+    // Extract specific POT points (40% eff)
+    //----------------------------------
+
+    auto print_point = [&](double pot_val){
+
+        double N_eff = efficiency * events_ref * (pot_val / pot_ref);
+        double stat_unc = (N_eff > 0) ? 100.0 / sqrt(N_eff) : 99999.0;
+
+        printf("POT = %.2e --> N_eff = %.2f, stat unc = %.2f%%\n",
+            pot_val, N_eff, stat_unc);
+    };
+
+    // Points of interest
+    print_point(7e20);
+    print_point(10.5e20);
+    print_point(16e20);    
 }

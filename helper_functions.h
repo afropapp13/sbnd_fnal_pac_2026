@@ -24,6 +24,34 @@
 using namespace std;
 using namespace constants;
 
+#include <iostream>
+#include <TH1D.h>
+
+//---------------------------//
+
+void PrintBinErrors(TH1D* h) {
+    if (!h) {
+        std::cout << "Histogram pointer is null!" << std::endl;
+        return;
+    }
+
+    int nbins = h->GetNbinsX();
+
+    std::cout << "Histogram: " << h->GetName() << std::endl;
+    std::cout << "Bin\tCenter\t\tContent\t\tError" << std::endl;
+
+    for (int i = 1; i <= nbins; ++i) {  // skip under/overflow for clarity
+        double center  = h->GetBinCenter(i);
+        double content = h->GetBinContent(i);
+        double error   = h->GetBinError(i);
+
+        std::cout << i << "\t"
+                  << center << "\t"
+                  << content << "\t"
+                  << error << std::endl;
+    }
+}
+
 //---------------------------//
 
 void set_unc_from_cov(TH2D* cov, TH1D* h) {
@@ -426,3 +454,112 @@ int Return2DNBins(std::vector< std::vector<double> > BinEdgeVector) {
 	return NBins;
 
 }	
+
+//---------------------------//
+
+//----------------------------------------//
+// 4D versions
+//----------------------------------------//
+
+int ReturnIndexIn4DList(const std::vector<std::vector<std::vector<std::vector<double>>>>& BinEdgeVector,
+                        size_t idx0, size_t idx1, size_t idx2, double ValueInSlice) 
+{
+    int BinIndex = 1; // TH1D starts at 1
+
+    for (size_t i0 = 0; i0 < BinEdgeVector.size(); i0++) {
+        for (size_t i1 = 0; i1 < BinEdgeVector[i0].size(); i1++) {
+            for (size_t i2 = 0; i2 < BinEdgeVector[i0][i1].size(); i2++) {
+                if (i0 != idx0 || i1 != idx1 || i2 != idx2) {
+                    BinIndex += static_cast<int>(BinEdgeVector[i0][i1][i2].size()) - 1;
+                } else {
+                    BinIndex += ReturnIndex(ValueInSlice, BinEdgeVector[i0][i1][i2]);
+                    return BinIndex;
+                }
+            }
+        }
+    }
+    return BinIndex;
+}
+
+std::vector<double> Return4DBinIndices(const std::vector<std::vector<std::vector<std::vector<double>>>>& BinEdgeVector) {
+    int BinCounter = 0;
+    std::vector<double> BinIndices;
+
+    for (size_t i0 = 0; i0 < BinEdgeVector.size(); i0++) {
+        for (size_t i1 = 0; i1 < BinEdgeVector[i0].size(); i1++) {
+            for (size_t i2 = 0; i2 < BinEdgeVector[i0][i1].size(); i2++) {
+                for (size_t i3 = 0; i3 < BinEdgeVector[i0][i1][i2].size() - 1; i3++) {
+                    BinIndices.push_back(BinCounter + 0.5);
+                    BinCounter++;
+                }
+            }
+        }
+    }
+
+    BinIndices.push_back(BinCounter + 0.5); // upper edge
+    return BinIndices;
+}
+
+int Return4DNBins(const std::vector<std::vector<std::vector<std::vector<double>>>>& BinEdgeVector) {
+    int NBins = 0;
+    for (size_t i0 = 0; i0 < BinEdgeVector.size(); i0++)
+        for (size_t i1 = 0; i1 < BinEdgeVector[i0].size(); i1++)
+            for (size_t i2 = 0; i2 < BinEdgeVector[i0][i1].size(); i2++)
+                NBins += static_cast<int>(BinEdgeVector[i0][i1][i2].size()) - 1;
+    return NBins;
+}
+
+//----------------------------------------//
+// 5D versions
+//----------------------------------------//
+
+int ReturnIndexIn5DList(const std::vector<std::vector<std::vector<std::vector<std::vector<double>>>>>& BinEdgeVector,
+                        size_t idx0, size_t idx1, size_t idx2, size_t idx3, double ValueInSlice) 
+{
+    int BinIndex = 1; // TH1D starts at 1
+
+    for (size_t i0 = 0; i0 < BinEdgeVector.size(); i0++) {
+        for (size_t i1 = 0; i1 < BinEdgeVector[i0].size(); i1++) {
+            for (size_t i2 = 0; i2 < BinEdgeVector[i0][i1].size(); i2++) {
+                for (size_t i3 = 0; i3 < BinEdgeVector[i0][i1][i2].size(); i3++) {
+                    if (i0 != idx0 || i1 != idx1 || i2 != idx2 || i3 != idx3) {
+                        BinIndex += static_cast<int>(BinEdgeVector[i0][i1][i2][i3].size()) - 1;
+                    } else {
+                        BinIndex += ReturnIndex(ValueInSlice, BinEdgeVector[i0][i1][i2][i3]);
+                        return BinIndex;
+                    }
+                }
+            }
+        }
+    }
+    return BinIndex;
+}
+
+std::vector<double> Return5DBinIndices(const std::vector<std::vector<std::vector<std::vector<std::vector<double>>>>>& BinEdgeVector) {
+    int BinCounter = 0;
+    std::vector<double> BinIndices;
+
+    for (size_t i0 = 0; i0 < BinEdgeVector.size(); i0++)
+        for (size_t i1 = 0; i1 < BinEdgeVector[i0].size(); i1++)
+            for (size_t i2 = 0; i2 < BinEdgeVector[i0][i1].size(); i2++)
+                for (size_t i3 = 0; i3 < BinEdgeVector[i0][i1][i2].size(); i3++)
+                    for (size_t i4 = 0; i4 < BinEdgeVector[i0][i1][i2][i3].size() - 1; i4++) {
+                        BinIndices.push_back(BinCounter + 0.5);
+                        BinCounter++;
+                    }
+
+    BinIndices.push_back(BinCounter + 0.5); // upper edge
+    return BinIndices;
+}
+
+int Return5DNBins(const std::vector<std::vector<std::vector<std::vector<std::vector<double>>>>>& BinEdgeVector) {
+    int NBins = 0;
+    for (size_t i0 = 0; i0 < BinEdgeVector.size(); i0++)
+        for (size_t i1 = 0; i1 < BinEdgeVector[i0].size(); i1++)
+            for (size_t i2 = 0; i2 < BinEdgeVector[i0][i1].size(); i2++)
+                for (size_t i3 = 0; i3 < BinEdgeVector[i0][i1][i2].size(); i3++)
+                    NBins += static_cast<int>(BinEdgeVector[i0][i1][i2][i3].size()) - 1;
+    return NBins;
+}
+
+//---------------------------//

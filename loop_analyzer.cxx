@@ -88,7 +88,7 @@
 
 	//----------------------------------------//
 
-	WhichSample.push_back("/pnfs/sbnd/persistent/users/apapadop/neut/bnb.sbnd.neut_6_1_2.flat.root"); WhichName.push_back("NEUT");
+	/*WhichSample.push_back("/pnfs/sbnd/persistent/users/apapadop/neut/bnb.sbnd.neut_6_1_4_numu_cc.flat.root"); WhichName.push_back("NEUT");*/
 	WhichSample.push_back("/pnfs/sbnd/scratch/users/sungbino/pac/xsec_charge/AR23_20i_00_000.flat.root"); WhichName.push_back("AR23");
 	WhichSample.push_back("/pnfs/sbnd/scratch/users/sungbino/pac/xsec_charge/AR25_20i_00_000.flat.root"); WhichName.push_back("AR25");
 	WhichSample.push_back("/pnfs/sbnd/scratch/users/sungbino/pac/xsec_charge/AR25_20j_00_000.flat.root"); WhichName.push_back("AR25_20j");	
@@ -104,7 +104,7 @@
 
 		gROOT->ProcessLine("analyzer(\""+WhichSample[i]+"\",\""+WhichName[i]+"\").Loop()");
 
-		if (WhichName[i] == "AR23") {
+		/*if (WhichName[i] == "AR23") {
 
 			int n_tweaks = (int)(tweaks.size());
 
@@ -128,7 +128,7 @@
 
 			}
 
-		}
+		}*/
 
 	}
 

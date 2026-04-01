@@ -68,7 +68,7 @@ void overlay_mc_predictions() {
 	NameOfSamples.push_back("AR25"); Colors.push_back(kGreen+2); Labels.push_back("AR25 hA"); LineStyle.push_back(kSolid);
 	NameOfSamples.push_back("AR25_20j"); Colors.push_back(kBlue+1); Labels.push_back("AR25 hN");LineStyle.push_back(kSolid);
 	NameOfSamples.push_back("AR25_20l"); Colors.push_back(kMagenta+1); Labels.push_back("AR25 G4");LineStyle.push_back(kSolid);
-	NameOfSamples.push_back("NEUT"); Colors.push_back(kAzure+7); Labels.push_back("NEUT");LineStyle.push_back(kSolid);			
+	//NameOfSamples.push_back("NEUT"); Colors.push_back(kAzure+7); Labels.push_back("NEUT");LineStyle.push_back(kSolid);			
 
 	//----------------------------------------//
 
@@ -92,7 +92,7 @@ void overlay_mc_predictions() {
 		PlotCanvas->SetRightMargin(0.05);	
 		PlotCanvas->cd();			
 
-		TLegend* leg = new TLegend(0.37,0.75,0.92,0.89);
+		TLegend* leg = new TLegend(0.57,0.81,0.92,0.89);
 		leg->SetBorderSize(0);
 		leg->SetTextSize(text_size);
 		leg->SetTextFont(text_font);
@@ -116,7 +116,7 @@ void overlay_mc_predictions() {
 			PlotsTrue[iplot][isample]->GetXaxis()->SetTitleFont(text_font);
 			PlotsTrue[iplot][isample]->GetYaxis()->SetTitleFont(text_font);
 
-			PlotsTrue[iplot][isample]->GetYaxis()->SetTitleOffset(1.2);
+			PlotsTrue[iplot][isample]->GetYaxis()->SetTitleOffset(1.25);
 
 			gStyle->SetTitleFont(text_font,"");
 			gStyle->SetTitleSize(text_size,"");			
@@ -129,8 +129,54 @@ void overlay_mc_predictions() {
 			double max = TMath::Max(PlotsTrue[iplot][isample]->GetMaximum(), PlotsTrue[iplot][0]->GetMaximum());
 			PlotsTrue[iplot][0]->SetMaximum(1.1*max);
 
-			PlotsTrue[iplot][0]->Draw("hist same");			
-			PlotsTrue[iplot][isample]->Draw("hist same");	
+			TH1D* h = PlotsTrue[iplot][isample];
+
+			// Build error band
+			TGraphAsymmErrors* gerr = new TGraphAsymmErrors(h);
+
+			// Enforce symmetric errors (optional but recommended)
+			for (int i = 0; i < gerr->GetN(); ++i) {
+				double ey = 0.5 * (gerr->GetErrorYhigh(i) + gerr->GetErrorYlow(i));
+				gerr->SetPointEYhigh(i, ey);
+				gerr->SetPointEYlow(i, ey);
+			}
+
+			// Style the band
+			gerr->SetFillColorAlpha(Colors[isample], 0.35); // transparency
+			gerr->SetLineWidth(0);
+
+			// ------------------------------- //
+			// NEW: doubled statistics band
+			// ------------------------------- //
+
+			TGraphAsymmErrors* gerr2 = new TGraphAsymmErrors(*gerr);
+
+			for (int i = 0; i < gerr2->GetN(); ++i) {
+				double ey = gerr2->GetErrorYhigh(i);
+
+				double ey_scaled = ey / sqrt(2.0);
+
+				gerr2->SetPointEYhigh(i, ey_scaled);
+				gerr2->SetPointEYlow(i, ey_scaled);
+			}	
+			
+			// Darker band (same color, higher opacity)
+			gerr2->SetFillColorAlpha(Colors[isample], 0.4);
+			gerr2->SetLineWidth(0);					
+
+			if (isample == 0) {
+				h->Draw("hist");
+
+				gerr->Draw("E2 same");   // original (wider, lighter)
+				gerr2->Draw("E2 same");  // doubled stats (narrower, darker)
+
+				h->Draw("hist same");
+			} else {
+				gerr->Draw("E2 same");
+				gerr2->Draw("E2 same");
+
+				h->Draw("hist same");
+			}
 
 			double Chi2[nsamples];
 			int Ndof[nsamples];
@@ -140,7 +186,7 @@ void overlay_mc_predictions() {
 
 		// only for AR23, add systematics
 
-		if (NameOfSamples[isample] == "AR23") {
+		/*if (NameOfSamples[isample] == "AR23") {
 
 
 				TString cov_name = "tot_covariance_"+PlotNames[iplot];
@@ -192,6 +238,10 @@ void overlay_mc_predictions() {
 			TString Chi2NdofAlt = " (" + to_string_with_precision(Chi2[isample],1) + "/" + TString(std::to_string(Ndof[isample])) +")";
 
 			TLegendEntry* lGenie = leg->AddEntry(PlotsTrue[iplot][isample],Labels[isample] + Chi2NdofAlt,"");
+			lGenie->SetTextColor(Colors[isample]); 
+*/
+
+			TLegendEntry* lGenie = leg->AddEntry(PlotsTrue[iplot][isample],Labels[isample],"");
 			lGenie->SetTextColor(Colors[isample]); 
 
 		} // end of loop over samples

@@ -115,11 +115,49 @@ void analyzer::Loop() {
 
     //--------------------------------------//
 
+    // 1mu1p plots
+
+    TH1D* mup_MuonCosThetaPlot = new TH1D("mup_MuonCosThetaPlot",
+        ";cos(#theta_{#mu});#frac{d#sigma}{dcos(#theta_{#mu})} [10^{-38} cm^{2}/Ar]",
+        NBinsMuonCosTheta,
+        ArrayNBinsMuonCosTheta);
+
+    TH1D* mup_MuonMomentumPlot = new TH1D(
+        "mup_MuonMomentumPlot",
+        ";p_{#mu} [GeV];#frac{d#sigma}{dp_{#mu}} [10^{-38} cm^{2} / (Ar GeV/c)]",
+        NBinsMuonMomentum,
+        ArrayNBinsMuonMomentum
+    );        
+
+    TH1D* mup_DeltaPTPlot = new TH1D(
+        "mup_DeltaPTPlot",
+        ";#deltap_{T};#frac{d#sigma}{d#deltap_{T}} [10^{-38} cm^{2}/(Ar GeV/c)]",
+        NBinsDeltaPT,
+        ArrayNBinsDeltaPT
+    );
+
+    TH1D* mup_DeltaAlphaTPlot = new TH1D(
+        "mup_DeltaAlphaTPlot",
+        ";#delta#alpha_{T};#frac{d#sigma}{d#delta#alpha_{T}} [10^{-38} cm^{2}/(Ar deg)]",
+        NBinsDeltaAlphaT,
+        ArrayNBinsDeltaAlphaT
+    );               
+
+    //--------------------------------------//
+
     // 3d uncorrelated plots
 
     TH1D* dpt_in_dat_proton_multiPlot[nproton_bins][TwoDNBinsDeltaAlphaT];
     TH1D* pmu_in_costheta_mu_proton_multiPlot[nproton_bins][TwoDNBinsMuonCosTheta];
-    TH1D* pmu_in_costheta_mu_pion_multiPlot[npion_bins][TwoDNBinsMuonCosTheta];        
+    TH1D* pmu_in_costheta_mu_pion_multiPlot[npion_bins][TwoDNBinsMuonCosTheta];    
+    
+    // 4d uncorrelated plots
+    TH1D* pmu_in_costheta_mu_pion_proton_multiPlot[nproton_bins][npion_bins][TwoDNBinsMuonCosTheta];
+
+    // 5d uncorrelated plots
+    TH1D* pmu_in_costheta_mu_pion_proton_dpt_multiPlot
+        [nproton_bins][npion_bins][TwoDNBinsMuonCosTheta][TwoDNBinsDeltaPT];    
+
 
     // loop over proton multiplicity
     for (int i_prot = 0; i_prot < (int)nproton_bins; ++i_prot) {
@@ -129,7 +167,8 @@ void analyzer::Loop() {
 
             TString name = "DeltaPT_in_ProtonMulti_" + int_to_string(i_prot) + "_DeltaAlphaT_" + int_to_string(i_dat);
             TString title = int_to_string(i_prot) + " protons, " + to_string_with_precision(TwoDArrayNBinsDeltaAlphaT[i_dat],0) + " < #delta#alpha_{T} < " + to_string_with_precision(TwoDArrayNBinsDeltaAlphaT[i_dat+1],0) + " deg;#deltap_{T} [GeV/c];#frac{d^{2}#sigma}{d#deltap_{T}d#delta#alpha_{T}dn_{p}} [10^{-38} cm^{2}/(Ar GeV/c deg)]";
-            dpt_in_dat_proton_multiPlot[i_prot][i_dat] = new TH1D(name, title, bins_dpt_in_dat_proton_mult.at(i_prot).at(i_dat).size() - 1, bins_dpt_in_dat_proton_mult.at(i_prot).at(i_dat).data());
+            //dpt_in_dat_proton_multiPlot[i_prot][i_dat] = new TH1D(name, title, bins_dpt_in_dat_proton_mult.at(i_prot).at(i_dat).size() - 1, bins_dpt_in_dat_proton_mult.at(i_prot).at(i_dat).data());
+            dpt_in_dat_proton_multiPlot[i_prot][i_dat] = new TH1D(name, title, 100,0.,1.5);            
 
         } // end of dpt in slices of dat and proton multiplicity
 
@@ -138,9 +177,79 @@ void analyzer::Loop() {
 
             TString name = "Pmu_in_ProtonMulti_" + int_to_string(i_prot) + "_MuonCosTheta_" + int_to_string(i_costheta_mu);
             TString title = int_to_string(i_prot) + " protons, " + to_string_with_precision(TwoDArrayNBinsMuonCosTheta[i_costheta_mu],2) + " < cos(#theta_{#mu}) < " + to_string_with_precision(TwoDArrayNBinsMuonCosTheta[i_costheta_mu+1],2) + ";p_{#mu} [GeV/c];#frac{d^{2}#sigma}{dp_{#mu}dcos(#theta_{#mu})dn_{p}} [10^{-38} cm^{2}/(Ar GeV/c)]";
-            pmu_in_costheta_mu_proton_multiPlot[i_prot][i_costheta_mu] = new TH1D(name, title, bins_pmu_in_mucostheta_proton_mult.at(i_prot).at(i_costheta_mu).size() - 1, bins_pmu_in_mucostheta_proton_mult.at(i_prot).at(i_costheta_mu).data());
+            //pmu_in_costheta_mu_proton_multiPlot[i_prot][i_costheta_mu] = new TH1D(name, title, bins_pmu_in_mucostheta_proton_mult.at(i_prot).at(i_costheta_mu).size() - 1, bins_pmu_in_mucostheta_proton_mult.at(i_prot).at(i_costheta_mu).data());
+            pmu_in_costheta_mu_proton_multiPlot[i_prot][i_costheta_mu] = new TH1D(name, title, 50,0,1.5);            
 
-        } // end of dpt in slices of dat and proton multiplicity        
+        } // end of dpt in slices of dat and proton multiplicity      
+        
+        // loop over pion multiplicity
+        for (int i_pi = 0; i_pi < (int)npion_bins; ++i_pi) {    
+
+            // pmu in slices of costheta_mu, pion multiplicity, and proton multiplicity
+            for (int i_costheta_mu = 0; i_costheta_mu < TwoDNBinsMuonCosTheta; ++i_costheta_mu) {
+
+                TString name = "Pmu_in_ProtonMulti_" + int_to_string(i_prot)
+                            + "_PionMulti_" + int_to_string(i_pi)
+                            + "_MuonCosTheta_" + int_to_string(i_costheta_mu);
+
+                TString title = int_to_string(i_prot) + " protons, "
+                            + int_to_string(i_pi) + " pions, "
+                            + to_string_with_precision(TwoDArrayNBinsMuonCosTheta[i_costheta_mu],2)
+                            + " < cos(#theta_{#mu}) < "
+                            + to_string_with_precision(TwoDArrayNBinsMuonCosTheta[i_costheta_mu+1],2)
+                            + ";p_{#mu} [GeV/c];#frac{d^{3}#sigma}{dp_{#mu}dcos(#theta_{#mu})dn_{#pi}dn_{p}} [10^{-38} cm^{2}/(Ar GeV/c)]";
+
+                // with variable binning from your 4D container:
+                pmu_in_costheta_mu_pion_proton_multiPlot[i_prot][i_pi][i_costheta_mu] =
+                    new TH1D(name, title,
+                        bins_pmu_costh_np_npi.at(i_prot).at(i_pi).at(i_costheta_mu).size() - 1,
+                        bins_pmu_costh_np_npi.at(i_prot).at(i_pi).at(i_costheta_mu).data()
+                    );
+
+                // OR (your temporary flat binning version)
+                // pmu_in_costheta_mu_pion_proton_multiPlot[i_prot][i_pi][i_costheta_mu] =
+                //     new TH1D(name, title, 50, 0, 1.5);
+
+                for (int i_dpt = 0; i_dpt < TwoDNBinsDeltaPT; ++i_dpt) {
+
+                    TString name =
+                        "Pmu_in_ProtonMulti_" + int_to_string(i_prot)
+                        + "_PionMulti_" + int_to_string(i_pi)
+                        + "_MuonCosTheta_" + int_to_string(i_costheta_mu)
+                        + "_DeltaPT_" + int_to_string(i_dpt);
+
+                    TString title =
+                        int_to_string(i_prot) + " protons, "
+                        + int_to_string(i_pi) + " pions, "
+                        + to_string_with_precision(TwoDArrayNBinsMuonCosTheta[i_costheta_mu],2)
+                        + " < cos(#theta_{#mu}) < "
+                        + to_string_with_precision(TwoDArrayNBinsMuonCosTheta[i_costheta_mu+1],2)
+                        + ", "
+                        + to_string_with_precision(TwoDArrayNBinsDeltaPT[i_dpt],2)
+                        + " < #deltap_{T} < "
+                        + to_string_with_precision(TwoDArrayNBinsDeltaPT[i_dpt+1],2)
+                        + ";p_{#mu} [GeV/c];"
+                        + "#frac{d^{4}#sigma}{dp_{#mu}dcos(#theta_{#mu})d#deltap_{T}dn_{#pi}dn_{p}}";
+
+                    pmu_in_costheta_mu_pion_proton_dpt_multiPlot
+                        [i_prot][i_pi][i_costheta_mu][i_dpt] =
+                            new TH1D(
+                                name, title,
+                                bins_pmu_costh_np_npi_dpt
+                                    .at(i_prot).at(i_pi)
+                                    .at(i_costheta_mu).at(i_dpt)
+                                    .size() - 1,
+                                bins_pmu_costh_np_npi_dpt
+                                    .at(i_prot).at(i_pi)
+                                    .at(i_costheta_mu).at(i_dpt)
+                                    .data()
+                            );
+
+                }
+
+            } // costheta_mu loop
+
+        } // pion loop        
 
     } // end of the loop over proton multiplicity
 
@@ -152,7 +261,8 @@ void analyzer::Loop() {
 
             TString name = "Pmu_in_PionMulti_" + int_to_string(i_pi) + "_MuonCosTheta_" + int_to_string(i_costheta_mu);
             TString title = int_to_string(i_pi) + " pions, " + to_string_with_precision(TwoDArrayNBinsMuonCosTheta[i_costheta_mu],2) + " < cos(#theta_{#mu}) < " + to_string_with_precision(TwoDArrayNBinsMuonCosTheta[i_costheta_mu+1],2) + ";p_{#mu} [GeV/c];#frac{d^{2}#sigma}{dp_{#mu}dcos(#theta_{#mu})dn_{#pi}} [10^{-38} cm^{2}/(Ar GeV/c)]";
-            pmu_in_costheta_mu_pion_multiPlot[i_pi][i_costheta_mu] = new TH1D(name, title, bins_pmu_in_mucostheta_pion_mult.at(i_pi).at(i_costheta_mu).size() - 1, bins_pmu_in_mucostheta_pion_mult.at(i_pi).at(i_costheta_mu).data());
+            //pmu_in_costheta_mu_pion_multiPlot[i_pi][i_costheta_mu] = new TH1D(name, title, bins_pmu_in_mucostheta_pion_mult.at(i_pi).at(i_costheta_mu).size() - 1, bins_pmu_in_mucostheta_pion_mult.at(i_pi).at(i_costheta_mu).data());
+            pmu_in_costheta_mu_pion_multiPlot[i_pi][i_costheta_mu] = new TH1D(name, title, 50,0,1.5);            
 
         } // end of pmu in slices of costheta_mu and pion multiplicity        
 
@@ -243,7 +353,7 @@ void analyzer::Loop() {
         //----------------------------------//            
 
         // NEUT 6.1.2 was produced in 14 batches
-        if (fOutputFile == "NEUT") { weight /= 14.; }
+        //if (fOutputFile == "NEUT") { weight /= 14.; }
         if (fOutputFile == "AR23" || fOutputFile == "AR25" || fOutputFile == "AR25_20j" || fOutputFile == "AR25_20l") { weight /= 10.; }         
 
         //----------------------------------//        
@@ -283,16 +393,40 @@ void analyzer::Loop() {
         ProtonMultiPlot->Fill(npr, weight);
         PionMultiPlot->Fill(npi, weight);
 
+        //--------------------------------------//
+
+        // 1d plots for 1mu1p    
+        
+        if (npr == 1 && npi == 0) {
+            mup_MuonCosThetaPlot->Fill(mu4.Vect().CosTheta(), weight); 
+            mup_MuonMomentumPlot->Fill(mu4.Rho(), weight);
+            mup_DeltaPTPlot->Fill(dpt, weight);
+            mup_DeltaAlphaTPlot->Fill(dat, weight);               
+        }       
+
         //--------------------------------------//  
         
         // 3d uncorrelated plots
 
         int dat_slice = FindBin(TwoDArrayNBinsDeltaAlphaT, dat);
         int costheta_mu_slice = FindBin(TwoDArrayNBinsMuonCosTheta, mu4.Vect().CosTheta());   
+        int dpt_slice = FindBin(TwoDArrayNBinsDeltaPT, dpt);
 
         dpt_in_dat_proton_multiPlot[npr][dat_slice]->Fill(dpt, weight);
         pmu_in_costheta_mu_proton_multiPlot[npr][costheta_mu_slice]->Fill(mu4.Rho(), weight);
         pmu_in_costheta_mu_pion_multiPlot[npi][costheta_mu_slice]->Fill(mu4.Rho(), weight);
+
+        //--------------------------------------//     
+
+        // 4d uncorrelated plots
+
+        pmu_in_costheta_mu_pion_proton_multiPlot[npr][npi][costheta_mu_slice]
+            ->Fill(mu4.Rho(), weight);    
+            
+            
+        // 5d uncorrelated plots
+        pmu_in_costheta_mu_pion_proton_dpt_multiPlot[npr][npi][costheta_mu_slice][dpt_slice]
+            ->Fill(mu4.Rho(), weight);
 
         //--------------------------------------//     
         
@@ -353,7 +487,50 @@ void analyzer::Loop() {
 
         } // end of pmu in slices of costheta_mu and pion multiplicity        
 
-    } // end of the loop over pion multiplicity    
+    } // end of the loop over pion multiplicity   
+    
+    //--------------------------------------//
+
+    // 4d plots scaling
+
+    for (int i_prot = 0; i_prot < (int)nproton_bins; ++i_prot) {
+
+        for (int i_pi = 0; i_pi < (int)npion_bins; ++i_pi) {
+
+            for (int i_costheta_mu = 0; i_costheta_mu < TwoDNBinsMuonCosTheta; ++i_costheta_mu) {
+
+                pmu_in_costheta_mu_pion_proton_multiPlot[i_prot][i_pi][i_costheta_mu]
+                    ->Scale(1. / (TwoDArrayNBinsMuonCosTheta[i_costheta_mu+1]
+                                - TwoDArrayNBinsMuonCosTheta[i_costheta_mu]));
+
+                divide_bin_width(
+                    pmu_in_costheta_mu_pion_proton_multiPlot[i_prot][i_pi][i_costheta_mu]
+                );
+
+                for (int i_dpt = 0; i_dpt < TwoDNBinsDeltaPT; ++i_dpt) {
+
+                    double dcosth =
+                        TwoDArrayNBinsMuonCosTheta[i_costheta_mu+1]
+                    - TwoDArrayNBinsMuonCosTheta[i_costheta_mu];
+
+                    double ddpt =
+                        TwoDArrayNBinsDeltaPT[i_dpt+1]
+                    - TwoDArrayNBinsDeltaPT[i_dpt];
+
+                    pmu_in_costheta_mu_pion_proton_dpt_multiPlot
+                        [i_prot][i_pi][i_costheta_mu][i_dpt]
+                        ->Scale(1.0 / (dcosth * ddpt));
+
+                    divide_bin_width(
+                        pmu_in_costheta_mu_pion_proton_dpt_multiPlot
+                            [i_prot][i_pi][i_costheta_mu][i_dpt]
+                    );
+
+                }                
+
+            }
+        }
+    }    
 
     //--------------------------------------//    
 
